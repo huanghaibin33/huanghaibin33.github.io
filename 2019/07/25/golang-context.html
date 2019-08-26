@@ -79,21 +79,21 @@
 
 
 
-<meta name="description" content="为什么要用context我们知道在golang 实现并发是通过goroutine 的方式，但在创建一个goroutine 时，并不会返回一个类似pid 的进程号，因此我们无法从外部去终止一个goroutine，只能通过WaitGroup 等待goroutine 执行完。这样会带来什么样的问题呢？我们先来看一个例子：假设有一个用户请求，并发调用了下游的两个服务（RPC1，RPC2），然后再组合内容返">
+<meta name="description" content="为什么要用context我们知道在golang 实现并发是通过goroutine 的方式，但在创建一个goroutine 时，并不会返回一个类似pid 的进程号，因此我们无法从外部去终止一个goroutine，只能通过WaitGroup 等待goroutine 执行完。这样会带来什么样的问题呢？我们先来看一个例子：">
 <meta name="keywords" content="go,context">
 <meta property="og:type" content="article">
 <meta property="og:title" content="golang context 详解">
 <meta property="og:url" content="http://yoursite.com/2019/07/25/golang-context.html">
 <meta property="og:site_name" content="花开远方">
-<meta property="og:description" content="为什么要用context我们知道在golang 实现并发是通过goroutine 的方式，但在创建一个goroutine 时，并不会返回一个类似pid 的进程号，因此我们无法从外部去终止一个goroutine，只能通过WaitGroup 等待goroutine 执行完。这样会带来什么样的问题呢？我们先来看一个例子：假设有一个用户请求，并发调用了下游的两个服务（RPC1，RPC2），然后再组合内容返">
+<meta property="og:description" content="为什么要用context我们知道在golang 实现并发是通过goroutine 的方式，但在创建一个goroutine 时，并不会返回一个类似pid 的进程号，因此我们无法从外部去终止一个goroutine，只能通过WaitGroup 等待goroutine 执行完。这样会带来什么样的问题呢？我们先来看一个例子：">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/go/context_normal.png">
 <meta property="og:image" content="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/go/context_fail.png">
 <meta property="og:image" content="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/go/context_opt.png">
-<meta property="og:updated_time" content="2019-07-28T09:18:28.937Z">
+<meta property="og:updated_time" content="2019-07-28T09:46:25.540Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="golang context 详解">
-<meta name="twitter:description" content="为什么要用context我们知道在golang 实现并发是通过goroutine 的方式，但在创建一个goroutine 时，并不会返回一个类似pid 的进程号，因此我们无法从外部去终止一个goroutine，只能通过WaitGroup 等待goroutine 执行完。这样会带来什么样的问题呢？我们先来看一个例子：假设有一个用户请求，并发调用了下游的两个服务（RPC1，RPC2），然后再组合内容返">
+<meta name="twitter:description" content="为什么要用context我们知道在golang 实现并发是通过goroutine 的方式，但在创建一个goroutine 时，并不会返回一个类似pid 的进程号，因此我们无法从外部去终止一个goroutine，只能通过WaitGroup 等待goroutine 执行完。这样会带来什么样的问题呢？我们先来看一个例子：">
 <meta name="twitter:image" content="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/go/context_normal.png">
 
 
@@ -302,7 +302,19 @@
             
 
             
+              <span class="post-meta-divider">|</span>
+            
 
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2019-07-28T17:46:25+08:00">
+                2019-07-28
+              </time>
             
           </span>
 
@@ -372,7 +384,9 @@
       
 
       
-        <h3 id="为什么要用context"><a href="#为什么要用context" class="headerlink" title="为什么要用context"></a>为什么要用context</h3><p>我们知道在golang 实现并发是通过goroutine 的方式，但在创建一个goroutine 时，并不会返回一个类似pid 的进程号，因此我们无法从外部去终止一个goroutine，只能通过WaitGroup 等待goroutine 执行完。这样会带来什么样的问题呢？我们先来看一个例子：<br>假设有一个用户请求，并发调用了下游的两个服务（RPC1，RPC2），然后再组合内容返回给用户。<br>正常情况下，两个RPC 调用都成功，如下图所示<br><img src="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/go/context_normal.png" width="50%" height="50%"><br>但是如果RPC1 失败了，会发什么情况呢？最常用的做法则是等待RPC2 结束了，再返回失败给用户，这种情况RPC2 已经是在做无用功了，无论成功与否，对用户来说已经不重要了，而且还让用户白白多等待了一些时间。有一种比较高明的做法，那就是在RPC1 失败后立即返回，但是这种也存在一个缺陷，RPC2 还在运行，会造成资源的浪费。<br><img src="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/go/context_fail.png"><br><img src="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/go/context_opt.png" width="50%" height="50%"><br>最好的方式是有一种机制可以通知RPC2，让其提前退出（因为goroutine 不能被外部kill 掉），context 就很好的解决了这个问题，其实channel也能实现这个功能，但是需要额外的工作。说了这么多，context 到底是什么呢？</p>
+        <h3 id="为什么要用context"><a href="#为什么要用context" class="headerlink" title="为什么要用context"></a>为什么要用context</h3><p>我们知道在golang 实现并发是通过goroutine 的方式，但在创建一个goroutine 时，并不会返回一个类似pid 的进程号，因此我们无法从外部去终止一个goroutine，只能通过WaitGroup 等待goroutine 执行完。这样会带来什么样的问题呢？我们先来看一个例子：</p>
+<a id="more"></a>
+<p>假设有一个用户请求，并发调用了下游的两个服务（RPC1，RPC2），然后再组合内容返回给用户。<br>正常情况下，两个RPC 调用都成功，如下图所示<br><img src="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/go/context_normal.png" width="50%" height="50%"><br>但是如果RPC1 失败了，会发什么情况呢？最常用的做法则是等待RPC2 结束了，再返回失败给用户，这种情况RPC2 已经是在做无用功了，无论成功与否，对用户来说已经不重要了，而且还让用户白白多等待了一些时间。有一种比较高明的做法，那就是在RPC1 失败后立即返回，但是这种也存在一个缺陷，RPC2 还在运行，会造成资源的浪费。<br><img src="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/go/context_fail.png"><br><img src="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/go/context_opt.png" width="50%" height="50%"><br>最好的方式是有一种机制可以通知RPC2，让其提前退出（因为goroutine 不能被外部kill 掉），context 就很好的解决了这个问题，其实channel也能实现这个功能，但是需要额外的工作。说了这么多，context 到底是什么呢？</p>
 <h3 id="context-是什么"><a href="#context-是什么" class="headerlink" title="context 是什么"></a>context 是什么</h3><p>go 语言的每一个请求都会开启一个单独的goroutine 来处理的，这个goroutine可能又会开启其他的goroutine，所以一个请求可能会经过多个goroutine，context 就是在这些goroutine 中传递一些信息，和控制信号，以便管理各个goroutine 的生命周期，中文可以称之为上下文。</p>
 <h3 id="context-实战"><a href="#context-实战" class="headerlink" title="context 实战"></a>context 实战</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">"context"</span></span><br><span class="line">	<span class="string">"fmt"</span></span><br><span class="line">	<span class="string">"sync"</span></span><br><span class="line">	<span class="string">"time"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// RPC ...</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">RPC</span><span class="params">(ctx context.Context, method <span class="keyword">string</span>, duration time.Duration)</span></span> &#123;</span><br><span class="line">	beginTs := time.Now()</span><br><span class="line">	<span class="comment">// 统计实际耗时</span></span><br><span class="line">	<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		fmt.Println(<span class="string">" cost "</span>, time.Now().Sub(beginTs))</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> &lt;-time.After(duration):</span><br><span class="line">		<span class="comment">// 正常结束</span></span><br><span class="line">		fmt.Printf(<span class="string">"%s succ"</span>, method)</span><br><span class="line">	<span class="keyword">case</span> &lt;-ctx.Done():</span><br><span class="line">		<span class="comment">// 外部通知结束</span></span><br><span class="line">		fmt.Printf(<span class="string">"%s %s"</span>, method, ctx.Err())</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Proccess ...</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Proccess</span><span class="params">(timeout time.Duration)</span></span> &#123;</span><br><span class="line">	now := time.Now()</span><br><span class="line">	<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		fmt.Println(<span class="string">"Process cost "</span>, time.Now().Sub(now))</span><br><span class="line">	&#125;()</span><br><span class="line">	<span class="comment">// 所有的context 都要从Background 开始</span></span><br><span class="line">	ctx := context.Background()</span><br><span class="line">	<span class="comment">// 派生出新的context，定时取消context</span></span><br><span class="line">	ctx, cancel := context.WithTimeout(ctx, timeout)</span><br><span class="line">	<span class="comment">// 在调用withTimeout、withCancel、WithDeadline后</span></span><br><span class="line">	<span class="comment">// 使用defer cancel 是一个不错的习惯</span></span><br><span class="line">	<span class="comment">// WithTimeout 定时到了也会执行cancel函数，不过cancel是幂等的</span></span><br><span class="line">	<span class="keyword">defer</span> cancel()</span><br><span class="line"></span><br><span class="line">	wg := sync.WaitGroup&#123;&#125;</span><br><span class="line">	wg.Add(<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 开启两个goroutine 执行RPC： A和B</span></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		RPC(ctx, <span class="string">"A"</span>, <span class="number">100</span>*time.Millisecond)</span><br><span class="line">		wg.Done()</span><br><span class="line">	&#125;()</span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		RPC(ctx, <span class="string">"B"</span>, <span class="number">300</span>*time.Millisecond)</span><br><span class="line">		wg.Done()</span><br><span class="line">	&#125;()</span><br><span class="line">	wg.Wait()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	Proccess(time.Millisecond * <span class="number">200</span>)</span><br><span class="line">	<span class="comment">// Proccess(time.Millisecond * 400)</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -417,6 +431,10 @@
 <li>可以把一个Context 对象传递给任意个数的gorotuine，对它执行取消操作时，所有goroutine 都会接收到取消信号</li>
 <li>在使用withCancel 等可cancel 的函数后，应立即调用defer cancel()</li>
 </ol>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><ol>
+<li><a href="https://golang.org/pkg/context/" target="_blank" rel="noopener">context.go 源码</a></li>
+<li><a href="https://blog.lab99.org/post/golang-2017-10-27-video-how-to-correctly-use-package-context.html" target="_blank" rel="noopener">视频笔记：如何正确使用 Context - Jack Lindamood</a></li>
+</ol>
 
       
     </div>
@@ -458,6 +476,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/08/07/common-current-limiting-algorithm.html" rel="prev" title="常见的限流算法">
+                常见的限流算法 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -534,7 +556,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-count">3</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -545,7 +567,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-count">4</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -556,7 +578,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-count">9</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -589,7 +611,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#为什么要用context"><span class="nav-number">1.</span> <span class="nav-text">为什么要用context</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#context-是什么"><span class="nav-number">2.</span> <span class="nav-text">context 是什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#context-实战"><span class="nav-number">3.</span> <span class="nav-text">context 实战</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#context-源码分析"><span class="nav-number">4.</span> <span class="nav-text">context 源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#context-的接口定义"><span class="nav-number">4.1.</span> <span class="nav-text">context 的接口定义</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#context-的实现"><span class="nav-number">4.2.</span> <span class="nav-text">context 的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Background-和TODO"><span class="nav-number">4.2.1.</span> <span class="nav-text">Background 和TODO</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#WithValue"><span class="nav-number">4.2.2.</span> <span class="nav-text">WithValue</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#WithCancel"><span class="nav-number">4.2.3.</span> <span class="nav-text">WithCancel</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#WithTimeout-和WithDeadline"><span class="nav-number">4.2.4.</span> <span class="nav-text">WithTimeout 和WithDeadline</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用Context-的建议和技巧"><span class="nav-number">5.</span> <span class="nav-text">使用Context 的建议和技巧</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#为什么要用context"><span class="nav-number">1.</span> <span class="nav-text">为什么要用context</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#context-是什么"><span class="nav-number">2.</span> <span class="nav-text">context 是什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#context-实战"><span class="nav-number">3.</span> <span class="nav-text">context 实战</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#context-源码分析"><span class="nav-number">4.</span> <span class="nav-text">context 源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#context-的接口定义"><span class="nav-number">4.1.</span> <span class="nav-text">context 的接口定义</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#context-的实现"><span class="nav-number">4.2.</span> <span class="nav-text">context 的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Background-和TODO"><span class="nav-number">4.2.1.</span> <span class="nav-text">Background 和TODO</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#WithValue"><span class="nav-number">4.2.2.</span> <span class="nav-text">WithValue</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#WithCancel"><span class="nav-number">4.2.3.</span> <span class="nav-text">WithCancel</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#WithTimeout-和WithDeadline"><span class="nav-number">4.2.4.</span> <span class="nav-text">WithTimeout 和WithDeadline</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用Context-的建议和技巧"><span class="nav-number">5.</span> <span class="nav-text">使用Context 的建议和技巧</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考资料"><span class="nav-number">6.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
             
 
           </div>

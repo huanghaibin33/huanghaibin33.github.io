@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="漏桶算法,令牌桶算法,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="问题引入试想下天猫这个网站，在双十一和双十二等大型促销活动，访问量暴涨，如果不对流量进行控制牵引，任其冲击系统，那么有可能会击穿数据库，导致系统奔溃而无法访问网站。所以为了保护系统的正常运行，需要对外部流量就行限制，对超出系统能力范围的请求提供有损服务或者简单粗暴的将拒绝服务。 限流算法目前流行的限流算法有以下几种：  计数器 滑动窗口 漏桶 令牌桶">
+<meta name="keywords" content="漏桶算法,令牌桶算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="常见的限流算法">
+<meta property="og:url" content="http://yoursite.com/2019/08/07/common-current-limiting-algorithm.html">
+<meta property="og:site_name" content="花开远方">
+<meta property="og:description" content="问题引入试想下天猫这个网站，在双十一和双十二等大型促销活动，访问量暴涨，如果不对流量进行控制牵引，任其冲击系统，那么有可能会击穿数据库，导致系统奔溃而无法访问网站。所以为了保护系统的正常运行，需要对外部流量就行限制，对超出系统能力范围的请求提供有损服务或者简单粗暴的将拒绝服务。 限流算法目前流行的限流算法有以下几种：  计数器 滑动窗口 漏桶 令牌桶">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/rate_limit/counter.png">
+<meta property="og:image" content="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/rate_limit/counter_abnormal.png">
+<meta property="og:image" content="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/rate_limit/leaky_bucket.png">
+<meta property="og:image" content="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/rate_limit/token_bucket.png">
+<meta property="og:updated_time" content="2019-08-26T02:19:08.859Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="常见的限流算法">
+<meta name="twitter:description" content="问题引入试想下天猫这个网站，在双十一和双十二等大型促销活动，访问量暴涨，如果不对流量进行控制牵引，任其冲击系统，那么有可能会击穿数据库，导致系统奔溃而无法访问网站。所以为了保护系统的正常运行，需要对外部流量就行限制，对超出系统能力范围的请求提供有损服务或者简单粗暴的将拒绝服务。 限流算法目前流行的限流算法有以下几种：  计数器 滑动窗口 漏桶 令牌桶">
+<meta name="twitter:image" content="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/rate_limit/counter.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"hide","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/08/07/common-current-limiting-algorithm.html">
+
+
+
+
+
+  <title>常见的限流算法 | 花开远方</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">花开远方</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">世间好事难坚守，彩云易散琉璃脆！</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/07/common-current-limiting-algorithm.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Haibin Huang">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="花开远方">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">常见的限流算法</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-07T15:52:06+08:00">
+                2019-08-07
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2019-08-26T10:19:08+08:00">
+                2019-08-26
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/限流/" itemprop="url" rel="index">
+                    <span itemprop="name">限流</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-eye"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="问题引入"><a href="#问题引入" class="headerlink" title="问题引入"></a>问题引入</h3><p>试想下天猫这个网站，在双十一和双十二等大型促销活动，访问量暴涨，如果不对流量进行控制牵引，任其冲击系统，那么有可能会击穿数据库，导致系统奔溃而无法访问网站。所以为了保护系统的正常运行，需要对外部流量就行限制，对超出系统能力范围的请求提供有损服务或者简单粗暴的将拒绝服务。</p>
+<h3 id="限流算法"><a href="#限流算法" class="headerlink" title="限流算法"></a>限流算法</h3><p>目前流行的限流算法有以下几种：</p>
+<ol>
+<li>计数器</li>
+<li>滑动窗口</li>
+<li>漏桶</li>
+<li>令牌桶<a id="more"></a>
+<h3 id="计数器"><a href="#计数器" class="headerlink" title="计数器"></a>计数器</h3>计数器限流算法是常用的、也是比较简单的。在一个时间段内对请求数量进行计数，如果请求超过某个阈值，就会被拒绝掉或者是排队等待服务，当到了下个时间段，计数器会清零重新计数。<img src="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/rate_limit/counter.png" widtch="50%" height="50%">
+这种算法最大的优点就是简单，缺点就是不能均衡流量。考虑两种情况：</li>
+<li>流量特别大，在第1ms就到达了阈值，那么后面999ms 的流量将会被拒绝</li>
+<li>假设第1s 前面999ms没有流量（或少量），在最后1ms 涌入大量流量，并且在第2s 的第1ms 也有大量流量，那在这2ms 时间段内的流量有可能是系统阈值的2倍。<img src="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/rate_limit/counter_abnormal.png">
+
+</li>
+</ol>
+<h3 id="滑动窗口"><a href="#滑动窗口" class="headerlink" title="滑动窗口"></a>滑动窗口</h3><p>滑动窗口是将计数器的时间段（窗口）进行分片，比如将1s 划分为10个分片，每个分片都有自己独立的计数器，所有分片的计数超过阈值就会被限流。所以滑动窗口本质上也是一种计数器，只不过它的粒度更细。滑动窗口能有效的解决毛刺问题，而且分片越多，平滑效果越好。</p>
+<h3 id="漏桶"><a href="#漏桶" class="headerlink" title="漏桶"></a>漏桶</h3><p>漏桶算法思路很简单，水（请求）先进入到漏桶里，漏桶以一定的速度出水，当水流入速度过大会直接溢出，可以看出漏桶算法能强行限制数据的传输速率.<br><img src="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/rate_limit/leaky_bucket.png" width="50%" height="50%"><br>注：图片来源网络<br>go 参考代码</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> ratelimiter</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">"sync"</span></span><br><span class="line">	<span class="string">"time"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// LeakyBucket ...</span></span><br><span class="line"><span class="keyword">type</span> LeakyBucket <span class="keyword">struct</span> &#123;</span><br><span class="line">	sync.Mutex</span><br><span class="line">	rate   <span class="keyword">float64</span>          <span class="comment">// rate</span></span><br><span class="line">	<span class="built_in">cap</span>    <span class="keyword">uint64</span>           <span class="comment">// capacity</span></span><br><span class="line">	water  <span class="keyword">chan</span> <span class="keyword">interface</span>&#123;&#125; <span class="comment">// storage</span></span><br><span class="line">	ticker *time.Ticker</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// NewLeakBucket ...</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewLeakBucket</span><span class="params">(rate <span class="keyword">float64</span>, <span class="built_in">cap</span> <span class="keyword">uint64</span>)</span> *<span class="title">LeakyBucket</span></span> &#123;</span><br><span class="line">	lb := LeakyBucket&#123;</span><br><span class="line">		rate:   rate,</span><br><span class="line">		<span class="built_in">cap</span>:    <span class="built_in">cap</span>,</span><br><span class="line">		water:  <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">interface</span>&#123;&#125;, <span class="built_in">cap</span>),</span><br><span class="line">		ticker: time.NewTicker(time.Duration(<span class="number">1000</span>/rate) * time.Millisecond),</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> &amp;lb</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Inflow ...</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(lb *LeakyBucket)</span> <span class="title">Inflow</span><span class="params">(req <span class="keyword">interface</span>&#123;&#125;)</span> <span class="title">bool</span></span> &#123;</span><br><span class="line">	lb.Lock()</span><br><span class="line">	<span class="keyword">defer</span> lb.Unlock()</span><br><span class="line">	<span class="keyword">if</span> <span class="keyword">uint64</span>(<span class="built_in">len</span>(lb.water)) &lt; lb.<span class="built_in">cap</span> &#123;</span><br><span class="line">		lb.water &lt;- req</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Drip ...</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(lb *LeakyBucket)</span> <span class="title">Drip</span><span class="params">()</span> <span class="title">interface</span></span>&#123;&#125; &#123;</span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> &lt;-lb.ticker.C:</span><br><span class="line">		x := &lt;-lb.water</span><br><span class="line">		<span class="keyword">return</span> x</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="令牌桶"><a href="#令牌桶" class="headerlink" title="令牌桶"></a>令牌桶</h3><p>令牌桶算法的原理是系统会以一个恒定的速度往桶里放入令牌，如果有请求到来，则需要先从桶里获取一个令牌，当桶里没有令牌可取时，则拒绝服务。从原理上看，令牌桶算法和漏桶算法是相反的，一个“进水”，一个是“漏水”。<br><img src="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/rate_limit/token_bucket.png" width="50%" height="50%"><br>注：图片来源网络<br>go 参考代码</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> ratelimiter</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">"sync"</span></span><br><span class="line">	<span class="string">"time"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// TokenBucket ...</span></span><br><span class="line"><span class="keyword">type</span> TokenBucket <span class="keyword">struct</span> &#123;</span><br><span class="line">	sync.Mutex</span><br><span class="line">	lastTs   time.Time</span><br><span class="line">	capacity <span class="keyword">uint64</span></span><br><span class="line">	token    <span class="keyword">float64</span></span><br><span class="line">	rate     <span class="keyword">float64</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// NewTokenBucket ...</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewTokenBucket</span><span class="params">(rate <span class="keyword">float64</span>, capacity <span class="keyword">uint64</span>)</span> *<span class="title">TokenBucket</span></span> &#123;</span><br><span class="line">	tb := TokenBucket&#123;</span><br><span class="line">		lastTs:   time.Now(),</span><br><span class="line">		capacity: capacity,</span><br><span class="line">		token:    <span class="keyword">float64</span>(capacity),</span><br><span class="line">		rate:     rate,</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> &amp;tb</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Check ...</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tb *TokenBucket)</span> <span class="title">Check</span><span class="params">(n <span class="keyword">uint64</span>)</span> <span class="title">bool</span></span> &#123;</span><br><span class="line">	tb.Lock()</span><br><span class="line">	<span class="keyword">defer</span> tb.Unlock()</span><br><span class="line">	nowTs := time.Now()</span><br><span class="line">	tb.token += tb.rate * nowTs.Sub(tb.lastTs).Seconds()</span><br><span class="line">	tb.lastTs = nowTs</span><br><span class="line">	<span class="keyword">if</span> tb.token &gt; <span class="keyword">float64</span>(tb.capacity) &#123;</span><br><span class="line">		tb.token = <span class="keyword">float64</span>(tb.capacity)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> tb.token &gt; <span class="keyword">float64</span>(n) &#123;</span><br><span class="line">		tb.token = tb.token - <span class="keyword">float64</span>(n)</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>限流技术是保护系统正常运行的一种重要手段，在大流量场景中不可或缺。常见的限流算法有4中，其中计数器是比较简单的，但是会出现毛刺和超过系统阈值的风险。滑动窗口能有效的平滑，但平滑的效果取决于分片的大小。漏桶算法能很好的控制流量的访问速度，但它对于存在突发特性的流量来说缺乏效率，而令牌桶既能很好的控制流量的访问速度，也能应对突发特性的流量。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/漏桶算法/" rel="tag"><i class="fa fa-tag"></i> 漏桶算法</a>
+          
+            <a href="/tags/令牌桶算法/" rel="tag"><i class="fa fa-tag"></i> 令牌桶算法</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/07/25/golang-context.html" rel="next" title="golang context 详解">
+                <i class="fa fa-chevron-left"></i> golang context 详解
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Haibin Huang</p>
+              <p class="site-description motion-element" itemprop="description">做一个有情调的程序员</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#问题引入"><span class="nav-number">1.</span> <span class="nav-text">问题引入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#限流算法"><span class="nav-number">2.</span> <span class="nav-text">限流算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#计数器"><span class="nav-number">3.</span> <span class="nav-text">计数器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#滑动窗口"><span class="nav-number">4.</span> <span class="nav-text">滑动窗口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#漏桶"><span class="nav-number">5.</span> <span class="nav-text">漏桶</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#令牌桶"><span class="nav-number">6.</span> <span class="nav-text">令牌桶</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">7.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Haibin Huang</span>
+
+  
+</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https:////busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
