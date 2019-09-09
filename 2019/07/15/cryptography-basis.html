@@ -87,7 +87,7 @@
 <meta property="og:site_name" content="花开远方">
 <meta property="og:description" content="密码学是研究加密、解密方法以及秘密通信原理的一门科学。加密技术源远流长，自从古代有了信息的存储和传递，就有了加密技术。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-09-06T03:02:31.097Z">
+<meta property="og:updated_time" content="2019-09-09T03:42:55.493Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="密码学基础">
 <meta name="twitter:description" content="密码学是研究加密、解密方法以及秘密通信原理的一门科学。加密技术源远流长，自从古代有了信息的存储和传递，就有了加密技术。">
@@ -308,8 +308,8 @@
               
                 <span class="post-meta-item-text">更新于&#58;</span>
               
-              <time title="更新于" itemprop="dateModified" datetime="2019-09-06T11:02:31+08:00">
-                2019-09-06
+              <time title="更新于" itemprop="dateModified" datetime="2019-09-09T11:42:55+08:00">
+                2019-09-09
               </time>
             
           </span>
@@ -384,13 +384,29 @@
 <li>密钥传输不安全</li>
 <li>密钥管理负担重、分发比较困难</li>
 </ul>
-<h4 id="常见的算法"><a href="#常见的算法" class="headerlink" title="常见的算法"></a>常见的算法</h4><pre><code>DES，IDEA，RC4，RC5</code></pre><h3 id="非对称加密"><a href="#非对称加密" class="headerlink" title="非对称加密"></a>非对称加密</h3><p>非对称加密有一对密钥，其中一把是私钥，由用户保存，不能向外泄露，另外一个事公钥，可以对外公开。公钥加密的信息，只有私钥才能解密。反之，私钥加密的信息，只有公钥才能解密。</p>
+<h4 id="常见的算法"><a href="#常见的算法" class="headerlink" title="常见的算法"></a>常见的算法</h4><pre><code>DES，IDEA，RC4，RC5</code></pre><h3 id="非对称加密"><a href="#非对称加密" class="headerlink" title="非对称加密"></a>非对称加密</h3><p>非对称加密有一对密钥，其中一把是私钥，由用户保存，不能向外泄露，另外一个是公钥，可以对外公开。公钥加密的信息，只有私钥才能解密。反之，私钥加密的信息，只有公钥才能解密。</p>
 <h4 id="特征-1"><a href="#特征-1" class="headerlink" title="特征"></a>特征</h4><ul>
 <li>有公钥和私钥两把密钥</li>
 <li>算法强度复杂，加密速度慢（比对称加密慢千倍）</li>
 <li>公钥可以传输，安全性更高</li>
 </ul>
-<h4 id="常见的算法："><a href="#常见的算法：" class="headerlink" title="常见的算法："></a>常见的算法：</h4><pre><code>RSA、背包算法</code></pre><h3 id="应用："><a href="#应用：" class="headerlink" title="应用："></a>应用：</h3><p>对称加密和非对称加密都有各自的优缺点，所以在生产环境中，一般都是两种算法一起使用，常见的有HTTPS、SSH</p>
+<h4 id="常见的算法-1"><a href="#常见的算法-1" class="headerlink" title="常见的算法"></a>常见的算法</h4><pre><code>RSA、背包算法</code></pre><h3 id="数字摘要和数字签名"><a href="#数字摘要和数字签名" class="headerlink" title="数字摘要和数字签名"></a>数字摘要和数字签名</h3><p>数字摘要是将需要加密的明文哈希成一串固定长度（128）的密文。数字摘要的特点是：</p>
+<ol>
+<li>数字摘要长度固定</li>
+<li>相同明文生成的数字摘要一样，不同明文生成的数字摘要不一样</li>
+</ol>
+<p>数字签名是非对称加密和数字摘要的综合，发送方对传送的数据生成数字摘要，然后用私钥对数字摘要进行加密生成数字签名，随后将数据和数字签名一起发送给接收方。接收方收到后，用相同的方式生成数字摘要，用发送方的公钥（事先已经传送好）对数字签名进行解密得到另一个数字摘要，如果这两个数字摘要一样，就证明数据是完整的，在传输过程没有被修改过。<br>数字签名只能确定消息的完整性，无法保证数据的保密性<br>数字签名的特点：</p>
+<ol>
+<li>确定消息是从发送方发出的，别人无法冒充</li>
+<li>可以验证消息的完整性</li>
+</ol>
+<h3 id="数字证书和证书中心"><a href="#数字证书和证书中心" class="headerlink" title="数字证书和证书中心"></a>数字证书和证书中心</h3><p>数字签名的安全性极度依赖密钥的保密性，数字签名无法保障接收方获取到的公钥不是冒充的。因此需要一个权威的机构——证书中心（CA）来颁发数字证书。CA 用自己的私钥对发送方的信息，公钥以及证书信息进行加密生成数字证书，接收方获拿到数字证书后用CA的公钥进行解密，得到发送方的公钥。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ol>
+<li>对称加密算法效率高，安全性低，非对称加密速度慢，安全性高，所以在生产环境中，一般都是两种算法一起使用，常见的有<a href="/2019/08/21/https.html" title="HTTPS">HTTPS</a>、SSH</li>
+<li>数字签名主要是保证数据的完整性以及数据的发送方</li>
+<li>数字证书主要要确保公钥的安全性，不被冒充</li>
+</ol>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p>[What is a Digital Signature?]<a href="http://www.youdzone.com/signature.html" target="_blank" rel="noopener">http://www.youdzone.com/signature.html</a><br>[数字签名是什么？]<a href="http://www.ruanyifeng.com/blog/2011/08/what_is_a_digital_signature.html" target="_blank" rel="noopener">http://www.ruanyifeng.com/blog/2011/08/what_is_a_digital_signature.html</a></p>
 
       
     </div>
@@ -512,7 +528,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-count">7</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -523,7 +539,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-count">7</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -534,7 +550,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">17</span>
+                  <span class="site-state-item-count">18</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -567,7 +583,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#加密和解密的过程"><span class="nav-number">1.</span> <span class="nav-text">加密和解密的过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#对称加密"><span class="nav-number">2.</span> <span class="nav-text">对称加密</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#特征"><span class="nav-number">2.1.</span> <span class="nav-text">特征</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#常见的算法"><span class="nav-number">2.2.</span> <span class="nav-text">常见的算法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#非对称加密"><span class="nav-number">3.</span> <span class="nav-text">非对称加密</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#特征-1"><span class="nav-number">3.1.</span> <span class="nav-text">特征</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#常见的算法："><span class="nav-number">3.2.</span> <span class="nav-text">常见的算法：</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#应用："><span class="nav-number">4.</span> <span class="nav-text">应用：</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#加密和解密的过程"><span class="nav-number">1.</span> <span class="nav-text">加密和解密的过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#对称加密"><span class="nav-number">2.</span> <span class="nav-text">对称加密</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#特征"><span class="nav-number">2.1.</span> <span class="nav-text">特征</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#常见的算法"><span class="nav-number">2.2.</span> <span class="nav-text">常见的算法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#非对称加密"><span class="nav-number">3.</span> <span class="nav-text">非对称加密</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#特征-1"><span class="nav-number">3.1.</span> <span class="nav-text">特征</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#常见的算法-1"><span class="nav-number">3.2.</span> <span class="nav-text">常见的算法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数字摘要和数字签名"><span class="nav-number">4.</span> <span class="nav-text">数字摘要和数字签名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数字证书和证书中心"><span class="nav-number">5.</span> <span class="nav-text">数字证书和证书中心</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">6.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考"><span class="nav-number">7.</span> <span class="nav-text">参考</span></a></li></ol></div>
             
 
           </div>
