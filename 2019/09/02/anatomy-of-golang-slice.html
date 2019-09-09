@@ -94,7 +94,7 @@
 <meta property="og:image" content="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/go/append_slice_no_grow.png">
 <meta property="og:image" content="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/go/append_slice_grow.png">
 <meta property="og:image" content="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/go/nil_empty_slice.png">
-<meta property="og:updated_time" content="2019-09-03T13:54:21.114Z">
+<meta property="og:updated_time" content="2019-09-06T02:54:17.074Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="golang slice 剖析">
 <meta name="twitter:description" content="数组数组是最简单的数据结构，它拥有一块连续的内存，数组里的每个元素都是按顺序存储，因此可以快速地索引到任意元素（通过下标）。在go语言中，数组具有以下特征：  数组分配的内存是连续的 可以通过下标的方式访问数组内的元素 长度固定，不可改变    注：  数组在C++里是用指针表示，但在go里面是值，因此函数传递数组是拷贝整一串内容 数组类型包括数组长度和元素的类型，只有这两部分都相同，才能互相比较">
@@ -316,8 +316,8 @@
               
                 <span class="post-meta-item-text">更新于&#58;</span>
               
-              <time title="更新于" itemprop="dateModified" datetime="2019-09-03T21:54:21+08:00">
-                2019-09-03
+              <time title="更新于" itemprop="dateModified" datetime="2019-09-06T10:54:17+08:00">
+                2019-09-06
               </time>
             
           </span>
@@ -534,6 +534,10 @@
 
           <div class="post-nav-prev post-nav-item">
             
+              <a href="/2019/09/06/tree.html" rel="prev" title="树">
+                树 <i class="fa fa-chevron-right"></i>
+              </a>
+            
           </div>
         </div>
       
@@ -609,7 +613,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-count">6</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -620,7 +624,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-count">6</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -631,7 +635,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-count">17</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -758,8 +762,6 @@
   
 
 
-  
-
 
 
 
@@ -798,11 +800,6 @@
   
   
     <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
   
 
 
