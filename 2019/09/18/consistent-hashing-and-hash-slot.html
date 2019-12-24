@@ -87,7 +87,7 @@
 <meta property="og:site_name" content="花开远方">
 <meta property="og:description" content="一致性哈希的引入一个网站如果要提升其访问速度，通常会对静态资源进行缓存起来，当业务量比较小的时候，一台机器就可以完全cache 住所有的资源，当业务迅速发展，一台机器已经装不下所有的静态资源，就需要多台机器来共同缓存，这就带来了一些问题，多台机器如何分配资源以及资源的定位。最简单的做法是对资源进行分批，分别放到不同的机器上，然后建立一张表来维护资源的映射关系。当机器数量越来越多时，维护映射表也是一">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-09-06T06:16:00.218Z">
+<meta property="og:updated_time" content="2019-12-24T08:59:23.260Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="一致性哈希和哈希槽">
 <meta name="twitter:description" content="一致性哈希的引入一个网站如果要提升其访问速度，通常会对静态资源进行缓存起来，当业务量比较小的时候，一台机器就可以完全cache 住所有的资源，当业务迅速发展，一台机器已经装不下所有的静态资源，就需要多台机器来共同缓存，这就带来了一些问题，多台机器如何分配资源以及资源的定位。最简单的做法是对资源进行分批，分别放到不同的机器上，然后建立一张表来维护资源的映射关系。当机器数量越来越多时，维护映射表也是一">
@@ -308,8 +308,8 @@
               
                 <span class="post-meta-item-text">更新于&#58;</span>
               
-              <time title="更新于" itemprop="dateModified" datetime="2019-09-06T14:16:00+08:00">
-                2019-09-06
+              <time title="更新于" itemprop="dateModified" datetime="2019-12-24T16:59:23+08:00">
+                2019-12-24
               </time>
             
           </span>
@@ -392,8 +392,9 @@
 <li>一致性哈希主要是解决分布式缓存失效的问题</li>
 <li>哈希槽主要应用在分布式持久性存储</li>
 <li>哈希槽实现简单，而一致性哈希更加灵活</li>
+<li>当节点失效时，哈希槽需要有一个从节点来顶替，否则集群会不可用，一致性哈希会自动重新分配到其他节点</li>
 </ol>
-<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="https://www.zsythink.net/archives/1182" target="_blank" rel="noopener">白话解析：一致性哈希算法</a></p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p>白话解析：一致性哈希算法</p>
 
       
     </div>
@@ -592,7 +593,10 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div>
+  <a href="http://beian.miit.gov.cn">粤ICP备 19085147号</a>
+</div>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>

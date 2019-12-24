@@ -90,7 +90,7 @@
 <meta property="og:image" content="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/go/context_normal.png">
 <meta property="og:image" content="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/go/context_fail.png">
 <meta property="og:image" content="https://public-1251890033.cos.ap-guangzhou.myqcloud.com/blog/go/context_opt.png">
-<meta property="og:updated_time" content="2019-09-06T02:54:17.074Z">
+<meta property="og:updated_time" content="2019-12-24T09:01:22.942Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="golang context 详解">
 <meta name="twitter:description" content="为什么要用context我们知道在golang 实现并发是通过goroutine 的方式，但在创建一个goroutine 时，并不会返回一个类似pid 的进程号，因此我们无法从外部去终止一个goroutine，只能通过WaitGroup 等待goroutine 执行完。这样会带来什么样的问题呢？我们先来看一个例子：">
@@ -312,8 +312,8 @@
               
                 <span class="post-meta-item-text">更新于&#58;</span>
               
-              <time title="更新于" itemprop="dateModified" datetime="2019-09-06T10:54:17+08:00">
-                2019-09-06
+              <time title="更新于" itemprop="dateModified" datetime="2019-12-24T17:01:22+08:00">
+                2019-12-24
               </time>
             
           </span>
@@ -431,10 +431,7 @@
 <li>可以把一个Context 对象传递给任意个数的gorotuine，对它执行取消操作时，所有goroutine 都会接收到取消信号</li>
 <li>在使用withCancel 等可cancel 的函数后，应立即调用defer cancel()</li>
 </ol>
-<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><ol>
-<li><a href="https://golang.org/pkg/context/" target="_blank" rel="noopener">context.go 源码</a></li>
-<li><a href="https://blog.lab99.org/post/golang-2017-10-27-video-how-to-correctly-use-package-context.html" target="_blank" rel="noopener">视频笔记：如何正确使用 Context - Jack Lindamood</a></li>
-</ol>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><p>context.go 源码<br>视频笔记：如何正确使用 Context - Jack Lindamood</p>
 
       
     </div>
@@ -631,7 +628,10 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div>
+  <a href="http://beian.miit.gov.cn">粤ICP备 19085147号</a>
+</div>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
